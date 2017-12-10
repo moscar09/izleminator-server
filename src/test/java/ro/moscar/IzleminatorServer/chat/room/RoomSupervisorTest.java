@@ -1,6 +1,7 @@
 package ro.moscar.IzleminatorServer.chat.room;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,6 +44,22 @@ public class RoomSupervisorTest {
 
 		roomSupervisor.addUserToRoom(mockUser, "testroom");
 		verify(mockRoom).addUser(mockUser);
+	}
+
+	@Test
+	public void shouldSynchroniseStreamsOnLogin() throws IOException, EncodeException {
+		MockitoAnnotations.initMocks(this);
+		User mockUser = mock(User.class);
+		Room mockRoom = mock(Room.class);
+
+		String roomName = "testroom";
+		when(rooms.containsKey(roomName)).thenReturn(true);
+		when(rooms.get(roomName)).thenReturn(mockRoom);
+		when(mockRoom.getPosition()).thenReturn("1234");
+
+		roomSupervisor.addUserToRoom(mockUser, "testroom");
+
+		verify(mockUser, times(3)).sendMessage(any());
 	}
 
 	@Test
@@ -96,6 +113,44 @@ public class RoomSupervisorTest {
 	}
 
 	@Test
+	public void shouldSetPositionOnHeartbeat() throws IOException, EncodeException {
+		MockitoAnnotations.initMocks(this);
+
+		String roomName = "testroom";
+		User mockUser = mock(User.class);
+		Room mockRoom = mock(Room.class);
+		when(mockRoom.getPosition()).thenReturn(null);
+		when(rooms.get(roomName)).thenReturn(mockRoom);
+
+		roomSupervisor.userMessageReceived(mockUser, roomName, new HeartbeatMessage("HB:1234"));
+
+		verify(mockRoom).setPosition("1234");
+	}
+
+	@Test
+	public void shouldIgnoreHeartbeatIfNotRoomLeader() throws IOException, EncodeException {
+		MockitoAnnotations.initMocks(this);
+
+		String roomName = "testroom";
+		User mockRoomLeader = mock(User.class);
+		User mockOtherUser = mock(User.class);
+		Room room = new Room(roomName);
+
+		when(mockRoomLeader.getUuid()).thenReturn(UUID.randomUUID().toString());
+		when(mockOtherUser.getUuid()).thenReturn(UUID.randomUUID().toString());
+		when(rooms.get(roomName)).thenReturn(room);
+
+		roomSupervisor.userMessageReceived(mockRoomLeader, roomName, new HeartbeatMessage("HB:1234"));
+		assertEquals(room.getPosition(), "1234");
+
+		roomSupervisor.userMessageReceived(mockOtherUser, roomName, new HeartbeatMessage("HB:5678"));
+		assertEquals(room.getPosition(), "1234");
+
+		roomSupervisor.userMessageReceived(mockRoomLeader, roomName, new HeartbeatMessage("HB:9999"));
+		assertEquals(room.getPosition(), "9999");
+	}
+
+	@Test
 	public void shouldBroadcastOtherMessageTypes() throws IOException, EncodeException {
 		MockitoAnnotations.initMocks(this);
 
@@ -128,7 +183,5 @@ public class RoomSupervisorTest {
 
 		verify(mockRoom).removeUser(userId);
 		verify(rooms).remove(roomName);
-
 	}
-
 }

@@ -28,6 +28,11 @@ public class RoomSupervisor {
 
 		user.sendMessage(new SystemMessage("Welcome " + user.getUsername()));
 		user.sendMessage(new ControlMessage("userid:" + user.getUuid()));
+
+		if (room.getPosition() != null) {
+			user.sendMessage(new ControlMessage("seekAndStartPlayer:" + room.getPosition()));
+		}
+
 		room.broadcast(new SystemMessage(user.getUsername() + " has joined."));
 		room.addUser(user);
 	}
@@ -41,7 +46,6 @@ public class RoomSupervisor {
 					roomLeader = user;
 					String position = ((HeartbeatMessage) message).getPosition();
 					room.setPosition(position);
-					System.out.println("Room position set to " + position);
 				}
 			} catch (EncodeException e) {
 				e.printStackTrace();
