@@ -40,7 +40,7 @@ public class UserTest {
 		Session mockedSession = mock(Session.class);
 		Basic mockedBasicRemote = mock(Basic.class);
 		when(mockedSession.getBasicRemote()).thenReturn(mockedBasicRemote);
-		IMessage message = new HeartbeatMessage();
+		IMessage message = new HeartbeatMessage("HB:1234");
 
 		User user = new User("testington", mockedSession);
 		user.sendMessage(message);

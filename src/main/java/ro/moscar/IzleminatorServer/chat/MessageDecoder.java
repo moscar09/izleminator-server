@@ -36,7 +36,7 @@ public class MessageDecoder implements Decoder.Text<IMessage> {
 		case "control":
 			return new ControlMessage(data.get("content"));
 		case "heartbeat":
-			return new HeartbeatMessage();
+			return new HeartbeatMessage(data.get("content"));
 		default:
 			return new ChatMessage(data.get("content"));
 		}

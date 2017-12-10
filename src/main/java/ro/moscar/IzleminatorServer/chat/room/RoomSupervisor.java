@@ -9,10 +9,12 @@ import javax.websocket.EncodeException;
 import ro.moscar.IzleminatorServer.chat.IMessage;
 import ro.moscar.IzleminatorServer.chat.MessageType;
 import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
+import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
 import ro.moscar.IzleminatorServer.chat.messages.SystemMessage;
 
 public class RoomSupervisor {
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
+	private User roomLeader;
 
 	public void addUserToRoom(User user, String roomName) throws IOException, EncodeException {
 		Room room;
@@ -31,9 +33,16 @@ public class RoomSupervisor {
 	}
 
 	public void userMessageReceived(User user, String roomName, IMessage message) throws IOException {
+		Room room = rooms.get(roomName);
 		if (message.getMessageType() == MessageType.HEARTBEAT) {
 			try {
 				user.sendMessage(message);
+				if (room.getPosition() == null || roomLeader.getUuid().equals(user.getUuid())) {
+					roomLeader = user;
+					String position = ((HeartbeatMessage) message).getPosition();
+					room.setPosition(position);
+					System.out.println("Room position set to " + position);
+				}
 			} catch (EncodeException e) {
 				e.printStackTrace();
 			}

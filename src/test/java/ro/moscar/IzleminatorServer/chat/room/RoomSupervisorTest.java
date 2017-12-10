@@ -84,10 +84,15 @@ public class RoomSupervisorTest {
 
 		String roomName = "testroom";
 		User mockUser = mock(User.class);
-		IMessage message = new HeartbeatMessage();
+		Room mockRoom = mock(Room.class);
+		when(mockRoom.getPosition()).thenReturn(null);
+		when(rooms.get(roomName)).thenReturn(mockRoom);
+
+		IMessage message = new HeartbeatMessage("HB:1234");
 
 		roomSupervisor.userMessageReceived(mockUser, roomName, message);
 		verify(mockUser).sendMessage(message);
+		verify(mockRoom).setPosition("1234");
 	}
 
 	@Test

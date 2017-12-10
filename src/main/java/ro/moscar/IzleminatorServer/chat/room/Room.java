@@ -10,6 +10,7 @@ import ro.moscar.IzleminatorServer.chat.IMessage;
 
 public class Room {
 	private String name;
+	private String position;
 	private Map<String, User> users = new ConcurrentHashMap<String, User>();
 
 	public Room(String name) {
@@ -41,5 +42,13 @@ public class Room {
 				e.printStackTrace();
 			}
 		});
+	}
+
+	public String getPosition() {
+		return position;
+	}
+
+	public void setPosition(String position) {
+		this.position = position;
 	}
 }

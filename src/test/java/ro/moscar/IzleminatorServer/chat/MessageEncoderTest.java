@@ -12,6 +12,7 @@ import com.google.gson.JsonObject;
 
 import ro.moscar.IzleminatorServer.chat.messages.ChatMessage;
 import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
+import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
 import ro.moscar.IzleminatorServer.chat.messages.SystemMessage;
 
 public class MessageEncoderTest {
@@ -60,6 +61,26 @@ public class MessageEncoderTest {
 		} catch (EncodeException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Test
+	public void shouldEncodeHeartbeatMessages() {
+		IMessage message = new HeartbeatMessage("HB:12231241");
+		MessageEncoder encoder = new MessageEncoder();
+
+		JsonObject json = new JsonObject();
+		json.addProperty("messageType", "heartbeat");
+		json.addProperty("position", "12231241");
+		json.addProperty("content", message.getContent());
+
+		try {
+			String encoded = encoder.encode(message);
+
+			assertEquals(json.toString(), encoded);
+		} catch (EncodeException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }
