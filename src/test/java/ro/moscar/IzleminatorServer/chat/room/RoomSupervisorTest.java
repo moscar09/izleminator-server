@@ -23,6 +23,7 @@ import org.mockito.MockitoAnnotations;
 import ro.moscar.IzleminatorServer.chat.IMessage;
 import ro.moscar.IzleminatorServer.chat.MessageType;
 import ro.moscar.IzleminatorServer.chat.messages.ChatMessage;
+import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
 import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
 
 public class RoomSupervisorTest {
@@ -81,13 +82,15 @@ public class RoomSupervisorTest {
 
 		roomSupervisor.addUserToRoom(mockUser, "testroom");
 
-		verify(mockUser, times(2)).sendMessage(argumentCaptor.capture());
+		verify(mockUser, times(3)).sendMessage(argumentCaptor.capture());
 		List<IMessage> messageList = argumentCaptor.getAllValues();
 
 		assertEquals(messageList.get(0).getMessageType(), MessageType.SYSTEM);
 		assertEquals(messageList.get(0).getContent(), "Welcome " + username);
 		assertEquals(messageList.get(1).getMessageType(), MessageType.CONTROL);
 		assertEquals(messageList.get(1).getContent(), "userid:" + uuid);
+		assertEquals(messageList.get(2).getMessageType(), MessageType.CONTROL);
+		assertEquals(messageList.get(2).getContent(), "seekAndStartPlayer:0");
 
 		verify(mockRoom).broadcast(argumentCaptor.capture());
 		IMessage message = argumentCaptor.getValue();
@@ -151,7 +154,7 @@ public class RoomSupervisorTest {
 	}
 
 	@Test
-	public void shouldBroadcastOtherMessageTypes() throws IOException, EncodeException {
+	public void shouldBroadcastChatMessages() throws IOException, EncodeException {
 		MockitoAnnotations.initMocks(this);
 
 		String roomName = "testroom";
@@ -163,6 +166,34 @@ public class RoomSupervisorTest {
 
 		roomSupervisor.userMessageReceived(mockUser, roomName, message);
 		verify(mockRoom).broadcast(message);
+	}
+
+	@Test
+	public void shouldUpdateRoomStateOnControlMessages() throws IOException, EncodeException {
+		MockitoAnnotations.initMocks(this);
+
+		String roomName = "testroom";
+		User mockUser = mock(User.class);
+		Room mockRoom = mock(Room.class);
+
+		when(rooms.get(roomName)).thenReturn(mockRoom);
+
+		IMessage message = new ControlMessage("seekPlayer:23456");
+		roomSupervisor.userMessageReceived(mockUser, roomName, message);
+		verify(mockRoom).broadcast(message);
+		verify(mockRoom, times(0)).setIsPaused(false);
+		verify(mockRoom).setPosition("23456");
+
+		message = new ControlMessage("pausePlayer");
+		roomSupervisor.userMessageReceived(mockUser, roomName, message);
+		verify(mockRoom).broadcast(message);
+		verify(mockRoom).setIsPaused(true);
+
+		message = new ControlMessage("seekAndStartPlayer:12345");
+		roomSupervisor.userMessageReceived(mockUser, roomName, message);
+		verify(mockRoom).broadcast(message);
+		verify(mockRoom).setIsPaused(false);
+		verify(mockRoom).setPosition("12345");
 	}
 
 	@Test

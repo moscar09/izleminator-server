@@ -29,8 +29,14 @@ public class RoomSupervisor {
 		user.sendMessage(new SystemMessage("Welcome " + user.getUsername()));
 		user.sendMessage(new ControlMessage("userid:" + user.getUuid()));
 
-		if (room.getPosition() != null) {
-			user.sendMessage(new ControlMessage("seekAndStartPlayer:" + room.getPosition()));
+		if (room.getIsPaused()) {
+			user.sendMessage(new ControlMessage("pausePlayer"));
+			if (room.getPosition() != null) {
+				user.sendMessage(new ControlMessage("seekPlayer:" + room.getPosition()));
+			}
+		} else {
+			String position = room.getPosition() != null ? room.getPosition() : "0";
+			user.sendMessage(new ControlMessage("seekAndStartPlayer:" + position));
 		}
 
 		room.broadcast(new SystemMessage(user.getUsername() + " has joined."));
@@ -39,6 +45,7 @@ public class RoomSupervisor {
 
 	public void userMessageReceived(User user, String roomName, IMessage message) throws IOException {
 		Room room = rooms.get(roomName);
+
 		if (message.getMessageType() == MessageType.HEARTBEAT) {
 			try {
 				user.sendMessage(message);
@@ -51,12 +58,29 @@ public class RoomSupervisor {
 				e.printStackTrace();
 			}
 		} else {
-			rooms.get(roomName).broadcast(message);
+			if (message.getMessageType() == MessageType.CONTROL && message.getContent().equals("pausePlayer")) {
+				room.setIsPaused(true);
+			} else if (message.getMessageType() == MessageType.CONTROL) {
+				String[] components = message.getContent().split(":");
+
+				if (components[0].equals("seekAndStartPlayer") || components[0].equals("seekPlayer")) {
+					roomLeader = user;
+					room.setPosition(components[1]);
+
+					if (components[0].equals("seekAndStartPlayer")) {
+						room.setIsPaused(false);
+					}
+				}
+			}
+			room.broadcast(message);
 		}
 	}
 
 	public void userClosedClosedConnection(User user, String roomName) {
 		Room room = rooms.get(roomName);
+		if (roomLeader != null && roomLeader.getUuid().equals(user.getUuid())) {
+			roomLeader = null;
+		}
 		room.removeUser(user.getId());
 
 		if (room.getUserCount() == 0) {
