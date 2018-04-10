@@ -9,10 +9,12 @@ import javax.websocket.EndpointConfig;
 import com.google.gson.Gson;
 
 import ro.moscar.IzleminatorServer.chat.messages.ChatMessage;
-import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
 import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.PausePlayer;
+import ro.moscar.IzleminatorServer.chat.messages.control.SeekAndStartPlayer;
+import ro.moscar.IzleminatorServer.chat.messages.control.SeekPlayer;
 
-public class MessageDecoder implements Decoder.Text<IMessage> {
+public class MessageDecoder2 implements Decoder.Text<IMessage> {
 	private Gson gson = new Gson();
 
 	@Override
@@ -32,20 +34,24 @@ public class MessageDecoder implements Decoder.Text<IMessage> {
 		@SuppressWarnings("unchecked")
 		Map<String, String> data = gson.fromJson(s, Map.class);
 
-		Decoder.Text<IMessage> newDecoder = new MessageDecoder2();
-
-		if (data.containsKey("version") && data.get("version").equals("1")) {
-			return newDecoder.decode(s);
-		}
+		IMessage decodedMessage;
 
 		switch (data.get("messageType").toString()) {
 		case "control":
-			return new ControlMessage(data.get("content"));
+			decodedMessage = decodeControlMessages(data);
+			break;
+
 		case "heartbeat":
 			return new HeartbeatMessage(data.get("content"));
 		default:
 			return new ChatMessage(data.get("content"));
 		}
+
+		if (decodedMessage == null) {
+			throw new DecodeException(s, "Message has invalid schema!");
+		}
+
+		return decodedMessage;
 	}
 
 	@Override
@@ -53,4 +59,18 @@ public class MessageDecoder implements Decoder.Text<IMessage> {
 		return s != null;
 	}
 
+	private IMessage decodeControlMessages(Map<String, String> data) {
+
+		switch (data.get("action")) {
+		case SeekPlayer.action:
+			return new SeekPlayer(data.get("position"));
+		case SeekAndStartPlayer.action:
+			return new SeekAndStartPlayer(data.get("position"));
+		case PausePlayer.action:
+			return new PausePlayer();
+		default:
+			return null;
+
+		}
+	}
 }
