@@ -13,7 +13,7 @@ import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
 
 public class MessageDecoderTest {
 	@Test
-	public void shouldDecodeMessagesV0() throws DecodeException {
+	public void shouldDecodeControlMessages() throws DecodeException {
 		Decoder.Text<IMessage> decoder = new MessageDecoder();
 
 		ControlMessage control = (ControlMessage) decoder.decode("{messageType: 'control', content: 'seekPlayer:123'}");
@@ -31,16 +31,25 @@ public class MessageDecoderTest {
 		control = (ControlMessage) decoder.decode("{messageType: 'control', content: 'nextEpisode:00112233'}");
 		assertEquals(control.getContent(), "nextEpisode:00112233");
 		assertEquals(control.getMessageType(), MessageType.CONTROL);
+	}
+
+	@Test
+	public void shouldDecodeHeartbeatMessages() throws DecodeException {
+		Decoder.Text<IMessage> decoder = new MessageDecoder();
 
 		HeartbeatMessage heartbeat = (HeartbeatMessage) decoder
 				.decode("{messageType: 'heartbeat', content: 'HB:255643'}");
 		assertEquals(heartbeat.getContent(), "HB:255643");
 		assertEquals(heartbeat.getPosition(), "255643");
 		assertEquals(heartbeat.getMessageType(), MessageType.HEARTBEAT);
+	}
+
+	@Test
+	public void shouldDecodeChatMessages() throws DecodeException {
+		Decoder.Text<IMessage> decoder = new MessageDecoder();
 
 		ChatMessage chat = (ChatMessage) decoder.decode("{messageType: 'chat', content: 'Hello World!'}");
 		assertEquals(chat.getContent(), "Hello World!");
 		assertEquals(chat.getMessageType(), MessageType.CHAT);
-
 	}
 }
