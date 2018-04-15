@@ -11,6 +11,7 @@ import ro.moscar.IzleminatorServer.chat.MessageType;
 import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
 import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
 import ro.moscar.IzleminatorServer.chat.messages.SystemMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.NextEpisodeMessage;
 
 public class RoomSupervisor {
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
@@ -57,9 +58,12 @@ public class RoomSupervisor {
 			} catch (EncodeException e) {
 				e.printStackTrace();
 			}
+		} else if (message.getMessageType() == MessageType.CHAT) {
+			room.broadcast(message);
 		} else {
 			if (message.getMessageType() == MessageType.CONTROL && message.getContent().equals("pausePlayer")) {
 				room.setIsPaused(true);
+				room.broadcast(message);
 			} else if (message.getMessageType() == MessageType.CONTROL) {
 				String[] components = message.getContent().split(":");
 
@@ -70,9 +74,26 @@ public class RoomSupervisor {
 					if (components[0].equals("seekAndStartPlayer")) {
 						room.setIsPaused(false);
 					}
+
+					room.broadcast(message);
+				} else if (components[0].equals(NextEpisodeMessage.action)) {
+					room.enqueueForNextEpisode(user);
+
+					if (room.getReadyForNextEpisode()) {
+						room.switchToNextEpisode();
+						room.broadcast(new SystemMessage("Next episode is starting."));
+						room.broadcast(new ControlMessage("seekAndStartPlayer:0"));
+					} else {
+						try {
+							room.broadcast(new SystemMessage(
+									String.format("%s moved to the next episode.", user.getUsername())));
+							user.sendMessage(new ControlMessage("pausePlayer"));
+						} catch (EncodeException e) {
+							e.printStackTrace();
+						}
+					}
 				}
 			}
-			room.broadcast(message);
 		}
 	}
 

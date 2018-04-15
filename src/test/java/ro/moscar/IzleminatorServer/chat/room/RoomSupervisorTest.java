@@ -25,6 +25,7 @@ import ro.moscar.IzleminatorServer.chat.MessageType;
 import ro.moscar.IzleminatorServer.chat.messages.ChatMessage;
 import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
 import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.NextEpisodeMessage;
 
 public class RoomSupervisorTest {
 	@Mock(name = "rooms")
@@ -215,4 +216,62 @@ public class RoomSupervisorTest {
 		verify(mockRoom).removeUser(userId);
 		verify(rooms).remove(roomName);
 	}
+
+	@Test
+	public void shouldPauseUsersWhenNotNextEpisode() throws IOException, EncodeException {
+		MockitoAnnotations.initMocks(this);
+
+		String roomName = "testRoom";
+		User mockUser = mock(User.class);
+		Room mockRoom = mock(Room.class);
+
+		when(mockUser.getId()).thenReturn("42");
+		when(mockUser.getUsername()).thenReturn("Testington");
+		when(rooms.get(roomName)).thenReturn(mockRoom);
+		when(mockRoom.getName()).thenReturn(roomName);
+		when(mockRoom.getReadyForNextEpisode()).thenReturn(false);
+
+		IMessage message;
+		ArgumentCaptor<IMessage> argumentCaptor = ArgumentCaptor.forClass(IMessage.class);
+
+		roomSupervisor.userMessageReceived(mockUser, roomName, new NextEpisodeMessage("0123"));
+
+		verify(mockRoom, times(1)).broadcast(argumentCaptor.capture());
+		message = argumentCaptor.getValue();
+		assertEquals(MessageType.SYSTEM, message.getMessageType());
+		assertEquals("Testington moved to the next episode.", message.getContent());
+
+		verify(mockUser, times(1)).sendMessage(argumentCaptor.capture());
+		message = argumentCaptor.getValue();
+		assertEquals(MessageType.CONTROL, message.getMessageType());
+		assertEquals("pausePlayer", message.getContent());
+	}
+
+	@Test
+	public void shouldResetUsersWhenNextEpisode() throws IOException, EncodeException {
+		MockitoAnnotations.initMocks(this);
+
+		String roomName = "testRoom";
+		User mockUser = mock(User.class);
+		Room mockRoom = mock(Room.class);
+
+		when(mockUser.getId()).thenReturn("42");
+		when(mockUser.getUsername()).thenReturn("Testington");
+		when(rooms.get(roomName)).thenReturn(mockRoom);
+		when(mockRoom.getName()).thenReturn(roomName);
+		when(mockRoom.getReadyForNextEpisode()).thenReturn(true);
+
+		ArgumentCaptor<IMessage> argumentCaptor = ArgumentCaptor.forClass(IMessage.class);
+
+		roomSupervisor.userMessageReceived(mockUser, roomName, new NextEpisodeMessage("0123"));
+
+		verify(mockRoom, times(2)).broadcast(argumentCaptor.capture());
+		List<IMessage> messages = argumentCaptor.getAllValues();
+
+		assertEquals(MessageType.SYSTEM, messages.get(0).getMessageType());
+		assertEquals("Next episode is starting.", messages.get(0).getContent());
+		assertEquals(MessageType.CONTROL, messages.get(1).getMessageType());
+		assertEquals("seekAndStartPlayer:0", messages.get(1).getContent());
+	}
+
 }
