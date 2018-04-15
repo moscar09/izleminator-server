@@ -45,6 +45,6 @@ public class ChatEndpoint {
 
 	@OnError
 	public void onError(Session session, Throwable throwable) {
-		System.out.println("Error");
+		throwable.printStackTrace();
 	}
 }
