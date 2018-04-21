@@ -44,7 +44,7 @@ public class RoomSupervisor {
 			user.sendMessage(new SeekAndStartPlayerMessage(position));
 		}
 
-		room.broadcast(new SystemMessage(user.getUsername() + " has joined."));
+		room.broadcast(new SystemMessage(String.format("%s joined.", user.getUsername())));
 		room.addUser(user);
 	}
 
@@ -113,6 +113,8 @@ public class RoomSupervisor {
 
 		if (room.getUserCount() == 0) {
 			rooms.remove(room.getName());
+		} else {
+			room.broadcast(new SystemMessage(String.format("%s left.", user.getUsername())));
 		}
 	}
 }

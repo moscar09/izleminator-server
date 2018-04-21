@@ -24,6 +24,7 @@ import ro.moscar.IzleminatorServer.chat.IMessage;
 import ro.moscar.IzleminatorServer.chat.messages.ChatMessage;
 import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
 import ro.moscar.IzleminatorServer.chat.messages.MessageType;
+import ro.moscar.IzleminatorServer.chat.messages.SystemMessage;
 import ro.moscar.IzleminatorServer.chat.messages.control.NextEpisodeMessage;
 import ro.moscar.IzleminatorServer.chat.messages.control.PausePlayerMessage;
 import ro.moscar.IzleminatorServer.chat.messages.control.SeekAndStartPlayerMessage;
@@ -98,7 +99,7 @@ public class RoomSupervisorTest {
 		verify(mockRoom).broadcast(argumentCaptor.capture());
 		IMessage message = argumentCaptor.getValue();
 		assertEquals(message.getMessageType(), MessageType.SYSTEM);
-		assertEquals(message.getContent(), username + " has joined.");
+		assertEquals(message.getContent(), username + " joined.");
 	}
 
 	@Test
@@ -217,6 +218,31 @@ public class RoomSupervisorTest {
 
 		verify(mockRoom).removeUser(userId);
 		verify(rooms).remove(roomName);
+	}
+
+	@Test
+	public void shouldAnnounceThatUserLeft() {
+		MockitoAnnotations.initMocks(this);
+
+		String userName = "Testington";
+		String roomName = "testRoom";
+		Room mockRoom = mock(Room.class);
+		User mockUser = mock(User.class);
+
+		when(rooms.get(roomName)).thenReturn(mockRoom);
+		when(mockRoom.getUserCount()).thenReturn(1);
+		when(mockRoom.getName()).thenReturn(roomName);
+		when(mockUser.getUsername()).thenReturn(userName);
+
+		ArgumentCaptor<IMessage> argumentCaptor = ArgumentCaptor.forClass(IMessage.class);
+
+		roomSupervisor.userClosedClosedConnection(mockUser, roomName);
+
+		verify(mockRoom, times(1)).broadcast(argumentCaptor.capture());
+
+		SystemMessage message = (SystemMessage) argumentCaptor.getValue();
+		assertEquals(String.format("%s left.", userName), message.getContent());
+
 	}
 
 	@Test
