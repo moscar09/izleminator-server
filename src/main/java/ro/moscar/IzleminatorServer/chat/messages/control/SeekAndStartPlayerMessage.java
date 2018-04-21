@@ -1,10 +1,11 @@
 package ro.moscar.IzleminatorServer.chat.messages.control;
 
 import ro.moscar.IzleminatorServer.chat.IMessage;
-import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
+import ro.moscar.IzleminatorServer.chat.messages.AbstractControlMessage;
+import ro.moscar.IzleminatorServer.chat.messages.MessageAction;
 
-public class SeekAndStartPlayerMessage extends ControlMessage implements IMessage {
-	public static final String action = "seekAndStartPlayer";
+public class SeekAndStartPlayerMessage extends AbstractControlMessage implements IMessage {
+	public static final MessageAction action = MessageAction.SEEK_AND_START_PLAYER;
 
 	private String position;
 
@@ -17,7 +18,7 @@ public class SeekAndStartPlayerMessage extends ControlMessage implements IMessag
 		return position;
 	}
 
-	public String getAction() {
+	public MessageAction getAction() {
 		return action;
 	}
 }

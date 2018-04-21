@@ -9,6 +9,8 @@ import org.junit.Test;
 
 import ro.moscar.IzleminatorServer.chat.messages.ChatMessage;
 import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
+import ro.moscar.IzleminatorServer.chat.messages.MessageAction;
+import ro.moscar.IzleminatorServer.chat.messages.MessageType;
 import ro.moscar.IzleminatorServer.chat.messages.control.NextEpisodeMessage;
 import ro.moscar.IzleminatorServer.chat.messages.control.PausePlayerMessage;
 import ro.moscar.IzleminatorServer.chat.messages.control.SeekAndStartPlayerMessage;
@@ -22,7 +24,7 @@ public class MessageDecoderTest {
 		SeekPlayerMessage seekPlayer = (SeekPlayerMessage) decoder.decode(
 				"{messageType: 'control', content: 'seekPlayer:123', action: 'seekPlayer', position: '123', version:'1'}");
 		assertEquals(seekPlayer.getContent(), "seekPlayer:123");
-		assertEquals(seekPlayer.getAction(), "seekPlayer");
+		assertEquals(seekPlayer.getAction(), MessageAction.SEEK_PLAYER);
 		assertEquals(seekPlayer.getPosition(), "123");
 		assertEquals(seekPlayer.getMessageType(), MessageType.CONTROL);
 	}
@@ -34,7 +36,7 @@ public class MessageDecoderTest {
 		SeekAndStartPlayerMessage seekAndStartPlayer = (SeekAndStartPlayerMessage) decoder.decode(
 				"{messageType: 'control', content: 'seekAndStartPlayer:123', action: 'seekAndStartPlayer', position: '123', version:'1'}");
 		assertEquals(seekAndStartPlayer.getContent(), "seekAndStartPlayer:123");
-		assertEquals(seekAndStartPlayer.getAction(), "seekAndStartPlayer");
+		assertEquals(seekAndStartPlayer.getAction(), MessageAction.SEEK_AND_START_PLAYER);
 		assertEquals(seekAndStartPlayer.getPosition(), "123");
 		assertEquals(seekAndStartPlayer.getMessageType(), MessageType.CONTROL);
 	}
@@ -46,7 +48,7 @@ public class MessageDecoderTest {
 		PausePlayerMessage pausePlayer = (PausePlayerMessage) decoder
 				.decode("{messageType: 'control', content: 'pausePlayer', action: 'pausePlayer', version:'1'}");
 		assertEquals(pausePlayer.getContent(), "pausePlayer");
-		assertEquals(pausePlayer.getAction(), "pausePlayer");
+		assertEquals(pausePlayer.getAction(), MessageAction.PAUSE_PLAYER);
 		assertEquals(pausePlayer.getMessageType(), MessageType.CONTROL);
 	}
 
@@ -58,7 +60,7 @@ public class MessageDecoderTest {
 				"{messageType: 'control', content: 'nextEpisode:00112233', action: 'nextEpisode', episode_id: '00112233', version:'1'}");
 
 		assertEquals(nextEpisode.getContent(), "nextEpisode:00112233");
-		assertEquals(nextEpisode.getAction(), "nextEpisode");
+		assertEquals(nextEpisode.getAction(), MessageAction.NEXT_EPISODE);
 		assertEquals(nextEpisode.getEpisodeId(), "00112233");
 		assertEquals(nextEpisode.getMessageType(), MessageType.CONTROL);
 	}

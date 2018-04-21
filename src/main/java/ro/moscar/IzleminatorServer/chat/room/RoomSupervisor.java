@@ -7,11 +7,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.websocket.EncodeException;
 
 import ro.moscar.IzleminatorServer.chat.IMessage;
-import ro.moscar.IzleminatorServer.chat.MessageType;
-import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
+import ro.moscar.IzleminatorServer.chat.messages.AbstractControlMessage;
 import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
+import ro.moscar.IzleminatorServer.chat.messages.MessageAction;
+import ro.moscar.IzleminatorServer.chat.messages.MessageType;
 import ro.moscar.IzleminatorServer.chat.messages.SystemMessage;
-import ro.moscar.IzleminatorServer.chat.messages.control.NextEpisodeMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.PausePlayerMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.SeekAndStartPlayerMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.SeekPlayerMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.SessionConfigMessage;
 
 public class RoomSupervisor {
 	private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
@@ -28,16 +32,16 @@ public class RoomSupervisor {
 		}
 
 		user.sendMessage(new SystemMessage("Welcome " + user.getUsername()));
-		user.sendMessage(new ControlMessage("userid:" + user.getUuid()));
+		user.sendMessage(new SessionConfigMessage(user.getUuid()));
 
 		if (room.getIsPaused()) {
-			user.sendMessage(new ControlMessage("pausePlayer"));
+			user.sendMessage(new PausePlayerMessage());
 			if (room.getPosition() != null) {
-				user.sendMessage(new ControlMessage("seekPlayer:" + room.getPosition()));
+				user.sendMessage(new SeekPlayerMessage(room.getPosition()));
 			}
 		} else {
 			String position = room.getPosition() != null ? room.getPosition() : "0";
-			user.sendMessage(new ControlMessage("seekAndStartPlayer:" + position));
+			user.sendMessage(new SeekAndStartPlayerMessage(position));
 		}
 
 		room.broadcast(new SystemMessage(user.getUsername() + " has joined."));
@@ -60,38 +64,41 @@ public class RoomSupervisor {
 			}
 		} else if (message.getMessageType() == MessageType.CHAT) {
 			room.broadcast(message);
+		} else if (message.getMessageType() == MessageType.CONTROL) {
+			processControlMessage((AbstractControlMessage) message, room, user);
 		} else {
-			if (message.getMessageType() == MessageType.CONTROL && message.getContent().equals("pausePlayer")) {
-				room.setIsPaused(true);
-				room.broadcast(message);
-			} else if (message.getMessageType() == MessageType.CONTROL) {
-				String[] components = message.getContent().split(":");
+			// throw some silent exception
+		}
+	}
 
-				if (components[0].equals("seekAndStartPlayer") || components[0].equals("seekPlayer")) {
-					roomLeader = user;
-					room.setPosition(components[1]);
+	private void processControlMessage(AbstractControlMessage message, Room room, User user) {
+		if (message.getAction() == MessageAction.PAUSE_PLAYER) {
+			room.setIsPaused(true);
+			room.broadcast(message);
+		} else if (message.getAction() == MessageAction.SEEK_PLAYER) {
+			roomLeader = user;
+			room.setPosition(((SeekPlayerMessage) message).getPosition());
+			room.broadcast(message);
+		} else if (message.getAction() == MessageAction.SEEK_AND_START_PLAYER) {
+			roomLeader = user;
+			room.setPosition(((SeekAndStartPlayerMessage) message).getPosition());
+			room.setIsPaused(false);
+			room.broadcast(message);
 
-					if (components[0].equals("seekAndStartPlayer")) {
-						room.setIsPaused(false);
-					}
+		} else if (message.getAction() == MessageAction.NEXT_EPISODE) {
+			room.enqueueForNextEpisode(user);
 
-					room.broadcast(message);
-				} else if (components[0].equals(NextEpisodeMessage.action)) {
-					room.enqueueForNextEpisode(user);
-
-					if (room.getReadyForNextEpisode()) {
-						room.switchToNextEpisode();
-						room.broadcast(new SystemMessage("Next episode is starting."));
-						room.broadcast(new ControlMessage("seekAndStartPlayer:0"));
-					} else {
-						try {
-							room.broadcast(new SystemMessage(
-									String.format("%s moved to the next episode.", user.getUsername())));
-							user.sendMessage(new ControlMessage("pausePlayer"));
-						} catch (EncodeException e) {
-							e.printStackTrace();
-						}
-					}
+			if (room.getReadyForNextEpisode()) {
+				room.switchToNextEpisode();
+				room.broadcast(new SystemMessage("Next episode is starting."));
+				room.broadcast(new SeekAndStartPlayerMessage("0"));
+			} else {
+				try {
+					room.broadcast(
+							new SystemMessage(String.format("%s moved to the next episode.", user.getUsername())));
+					user.sendMessage(new PausePlayerMessage());
+				} catch (EncodeException | IOException e) {
+					e.printStackTrace();
 				}
 			}
 		}

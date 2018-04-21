@@ -1,10 +1,11 @@
 package ro.moscar.IzleminatorServer.chat.messages.control;
 
 import ro.moscar.IzleminatorServer.chat.IMessage;
-import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
+import ro.moscar.IzleminatorServer.chat.messages.AbstractControlMessage;
+import ro.moscar.IzleminatorServer.chat.messages.MessageAction;
 
-public class NextEpisodeMessage extends ControlMessage implements IMessage {
-	public static final String action = "nextEpisode";
+public class NextEpisodeMessage extends AbstractControlMessage implements IMessage {
+	private static final MessageAction action = MessageAction.NEXT_EPISODE;
 	private String episodeId;
 
 	public NextEpisodeMessage(String episodeId) {
@@ -12,7 +13,7 @@ public class NextEpisodeMessage extends ControlMessage implements IMessage {
 		this.episodeId = episodeId;
 	}
 
-	public String getAction() {
+	public MessageAction getAction() {
 		return action;
 	}
 

@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.websocket.EncodeException;
 
 import ro.moscar.IzleminatorServer.chat.IMessage;
-import ro.moscar.IzleminatorServer.chat.MessageType;
+import ro.moscar.IzleminatorServer.chat.messages.MessageType;
 
 public class Room {
 	private String name;

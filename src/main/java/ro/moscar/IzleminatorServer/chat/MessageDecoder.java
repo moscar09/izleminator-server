@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 
 import ro.moscar.IzleminatorServer.chat.messages.ChatMessage;
 import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
+import ro.moscar.IzleminatorServer.chat.messages.MessageAction;
 import ro.moscar.IzleminatorServer.chat.messages.control.NextEpisodeMessage;
 import ro.moscar.IzleminatorServer.chat.messages.control.PausePlayerMessage;
 import ro.moscar.IzleminatorServer.chat.messages.control.SeekAndStartPlayerMessage;
@@ -61,19 +62,16 @@ public class MessageDecoder implements Decoder.Text<IMessage> {
 	}
 
 	private IMessage decodeControlMessages(Map<String, String> data) {
-
-		switch (data.get("action")) {
-		case SeekPlayerMessage.action:
+		if (MessageAction.SEEK_PLAYER.equalsName(data.get("action"))) {
 			return new SeekPlayerMessage(data.get("position"));
-		case SeekAndStartPlayerMessage.action:
+		} else if (MessageAction.SEEK_AND_START_PLAYER.equalsName(data.get("action"))) {
 			return new SeekAndStartPlayerMessage(data.get("position"));
-		case PausePlayerMessage.action:
+		} else if (MessageAction.PAUSE_PLAYER.equalsName(data.get("action"))) {
 			return new PausePlayerMessage();
-		case NextEpisodeMessage.action:
+		} else if (MessageAction.NEXT_EPISODE.equalsName(data.get("action"))) {
 			return new NextEpisodeMessage(data.get("episode_id"));
-		default:
+		} else {
 			return null;
-
 		}
 	}
 }

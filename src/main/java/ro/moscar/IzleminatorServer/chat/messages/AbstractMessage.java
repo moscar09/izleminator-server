@@ -1,7 +1,5 @@
 package ro.moscar.IzleminatorServer.chat.messages;
 
-import ro.moscar.IzleminatorServer.chat.MessageType;
-
 public abstract class AbstractMessage {
 	protected String content;
 	private String from;

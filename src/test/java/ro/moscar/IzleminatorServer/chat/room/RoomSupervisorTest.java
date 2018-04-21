@@ -21,11 +21,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import ro.moscar.IzleminatorServer.chat.IMessage;
-import ro.moscar.IzleminatorServer.chat.MessageType;
 import ro.moscar.IzleminatorServer.chat.messages.ChatMessage;
-import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
 import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
+import ro.moscar.IzleminatorServer.chat.messages.MessageType;
 import ro.moscar.IzleminatorServer.chat.messages.control.NextEpisodeMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.PausePlayerMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.SeekAndStartPlayerMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.SeekPlayerMessage;
 
 public class RoomSupervisorTest {
 	@Mock(name = "rooms")
@@ -179,18 +181,18 @@ public class RoomSupervisorTest {
 
 		when(rooms.get(roomName)).thenReturn(mockRoom);
 
-		IMessage message = new ControlMessage("seekPlayer:23456");
+		IMessage message = new SeekPlayerMessage("23456");
 		roomSupervisor.userMessageReceived(mockUser, roomName, message);
-		verify(mockRoom).broadcast(message);
-		verify(mockRoom, times(0)).setIsPaused(false);
 		verify(mockRoom).setPosition("23456");
+		verify(mockRoom, times(0)).setIsPaused(false);
+		verify(mockRoom).broadcast(message);
 
-		message = new ControlMessage("pausePlayer");
+		message = new PausePlayerMessage();
 		roomSupervisor.userMessageReceived(mockUser, roomName, message);
 		verify(mockRoom).broadcast(message);
 		verify(mockRoom).setIsPaused(true);
 
-		message = new ControlMessage("seekAndStartPlayer:12345");
+		message = new SeekAndStartPlayerMessage("12345");
 		roomSupervisor.userMessageReceived(mockUser, roomName, message);
 		verify(mockRoom).broadcast(message);
 		verify(mockRoom).setIsPaused(false);

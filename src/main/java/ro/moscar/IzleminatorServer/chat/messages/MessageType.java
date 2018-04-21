@@ -1,4 +1,4 @@
-package ro.moscar.IzleminatorServer.chat;
+package ro.moscar.IzleminatorServer.chat.messages;
 
 import com.google.gson.annotations.SerializedName;
 

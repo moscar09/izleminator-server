@@ -11,9 +11,9 @@ import org.junit.Test;
 import com.google.gson.JsonObject;
 
 import ro.moscar.IzleminatorServer.chat.messages.ChatMessage;
-import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
 import ro.moscar.IzleminatorServer.chat.messages.HeartbeatMessage;
 import ro.moscar.IzleminatorServer.chat.messages.SystemMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.SessionConfigMessage;
 
 public class MessageEncoderTest {
 
@@ -32,12 +32,16 @@ public class MessageEncoderTest {
 
 	@Test
 	public void shouldEncodeControlMessages() {
-		IMessage message = new ControlMessage("Control message");
+		IMessage message = new SessionConfigMessage("123");
 		MessageEncoder encoder = new MessageEncoder();
 
 		try {
 			String encoded = encoder.encode(message);
-			assertEquals("{\"messageType\":\"control\",\"content\":\"Control message\"}", encoded);
+			System.out.println(encoded);
+
+			assertEquals(
+					"{\"action\":\"sessionConfig\",\"userid\":\"123\",\"messageType\":\"control\",\"content\":\"userid:123\"}",
+					encoded);
 		} catch (EncodeException e) {
 			e.printStackTrace();
 		}

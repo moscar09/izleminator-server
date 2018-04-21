@@ -17,7 +17,7 @@ import org.junit.Test;
 
 import ro.moscar.IzleminatorServer.chat.IMessage;
 import ro.moscar.IzleminatorServer.chat.messages.ChatMessage;
-import ro.moscar.IzleminatorServer.chat.messages.ControlMessage;
+import ro.moscar.IzleminatorServer.chat.messages.control.PausePlayerMessage;
 
 public class RoomTest {
 	private String roomName = "testRoom";
@@ -99,7 +99,7 @@ public class RoomTest {
 		}
 
 		room.enqueueForNextEpisode(users.get(0));
-		IMessage controlMessage = new ControlMessage("pausePlayer");
+		IMessage controlMessage = new PausePlayerMessage();
 		room.broadcast(controlMessage);
 		verify(users.get(1)).sendMessage(controlMessage);
 		verify(users.get(0), times(0)).sendMessage(controlMessage);
@@ -139,7 +139,7 @@ public class RoomTest {
 
 		room.switchToNextEpisode();
 
-		IMessage controlMessage = new ControlMessage("pausePlayer");
+		IMessage controlMessage = new PausePlayerMessage();
 		room.broadcast(controlMessage);
 		verify(users.get(1)).sendMessage(controlMessage);
 		verify(users.get(0)).sendMessage(controlMessage);

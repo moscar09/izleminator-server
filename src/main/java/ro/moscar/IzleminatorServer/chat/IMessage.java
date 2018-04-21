@@ -1,5 +1,7 @@
 package ro.moscar.IzleminatorServer.chat;
 
+import ro.moscar.IzleminatorServer.chat.messages.MessageType;
+
 public interface IMessage {
 	public String getContent();
 
