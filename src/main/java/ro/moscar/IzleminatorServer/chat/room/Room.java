@@ -43,10 +43,13 @@ public class Room {
 				return;
 			}
 
-			try {
-				user.sendMessage(message);
-			} catch (IOException | EncodeException e) {
-				e.printStackTrace();
+			synchronized (user) {
+				try {
+					user.sendMessage(message);
+				} catch (IOException | EncodeException e) {
+					e.printStackTrace();
+				}
+
 			}
 		});
 	}
