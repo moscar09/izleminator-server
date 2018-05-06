@@ -41,7 +41,9 @@ public class RoomSupervisor {
 			}
 		} else {
 			String position = room.getPosition() != null ? room.getPosition() : "0";
-			user.sendMessage(new SeekAndStartPlayerMessage(position));
+			user.sendMessage(new SeekPlayerMessage(position));
+			user.sendMessage(new PausePlayerMessage());
+			room.setIsPaused(true);
 		}
 
 		room.broadcast(new SystemMessage(String.format("%s joined.", user.getUsername())));

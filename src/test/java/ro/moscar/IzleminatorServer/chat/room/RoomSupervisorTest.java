@@ -64,7 +64,7 @@ public class RoomSupervisorTest {
 
 		roomSupervisor.addUserToRoom(mockUser, "testroom");
 
-		verify(mockUser, times(3)).sendMessage(any());
+		verify(mockUser, times(4)).sendMessage(any());
 	}
 
 	@Test
@@ -86,7 +86,7 @@ public class RoomSupervisorTest {
 
 		roomSupervisor.addUserToRoom(mockUser, "testroom");
 
-		verify(mockUser, times(3)).sendMessage(argumentCaptor.capture());
+		verify(mockUser, times(4)).sendMessage(argumentCaptor.capture());
 		List<IMessage> messageList = argumentCaptor.getAllValues();
 
 		assertEquals(messageList.get(0).getMessageType(), MessageType.SYSTEM);
@@ -94,7 +94,9 @@ public class RoomSupervisorTest {
 		assertEquals(messageList.get(1).getMessageType(), MessageType.CONTROL);
 		assertEquals(messageList.get(1).getContent(), "userid:" + uuid);
 		assertEquals(messageList.get(2).getMessageType(), MessageType.CONTROL);
-		assertEquals(messageList.get(2).getContent(), "seekAndStartPlayer:0");
+		assertEquals(messageList.get(2).getContent(), "seekPlayer:0");
+		assertEquals(messageList.get(3).getMessageType(), MessageType.CONTROL);
+		assertEquals(messageList.get(3).getContent(), "pausePlayer");
 
 		verify(mockRoom).broadcast(argumentCaptor.capture());
 		IMessage message = argumentCaptor.getValue();
